@@ -1,3 +1,104 @@
-dfsdf
-sdf
-sdf
+library(dplyr)
+library(lmerTest)
+library(emmeans)
+
+# ------------------------------------------------------------
+# H3: Domain sensitivity
+# Long-format data
+# ------------------------------------------------------------
+
+h3_long <- bind_rows(
+
+  df %>% transmute(
+    id,
+    Sex01,
+    Cohort01,
+    Domain = "Antonyms",
+    Bias = atonyms_bias,
+    Absolute_bias = atonyms_abs_bias,
+    Slope = atonyms_slope
+  ),
+
+  df %>% transmute(
+    id,
+    Sex01,
+    Cohort01,
+    Domain = "Metal Folding",
+    Bias = metal_bias,
+    Absolute_bias = metal_abs_bias,
+    Slope = metal_slope
+  ),
+
+  df %>% transmute(
+    id,
+    Sex01,
+    Cohort01,
+    Domain = "Number Series",
+    Bias = number_bias,
+    Absolute_bias = number_abs_bias,
+    Slope = number_slope
+  )
+)
+
+# Ange ordningen på domänerna
+h3_long$Domain <- factor(
+  h3_long$Domain,
+  levels = c("Antonyms", "Metal Folding", "Number Series")
+)
+
+
+# ------------------------------------------------------------
+# H3a: Bias
+# ------------------------------------------------------------
+
+model_bias <- lmer(
+  Bias ~ Domain + Sex01 + Cohort01 + (1 | id),
+  data = h3_long,
+  na.action = na.omit
+)
+
+anova(model_bias)
+
+emmeans(
+  model_bias,
+  pairwise ~ Domain,
+  adjust = "tukey"
+)
+
+
+# ------------------------------------------------------------
+# H3b: Absolute bias
+# ------------------------------------------------------------
+
+model_absbias <- lmer(
+  Absolute_bias ~ Domain + Sex01 + Cohort01 + (1 | id),
+  data = h3_long,
+  na.action = na.omit
+)
+
+anova(model_absbias)
+
+emmeans(
+  model_absbias,
+  pairwise ~ Domain,
+  adjust = "tukey"
+)
+
+
+# ------------------------------------------------------------
+# H3c: Discrimination (Slope)
+# ------------------------------------------------------------
+
+model_slope <- lmer(
+  Slope ~ Domain + Sex01 + Cohort01 + (1 | id),
+  data = h3_long,
+  na.action = na.omit
+)
+
+anova(model_slope)
+
+emmeans(
+  model_slope,
+  pairwise ~ Domain,
+  adjust = "tukey"
+)
