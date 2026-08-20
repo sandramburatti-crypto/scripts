@@ -190,3 +190,14 @@ emmeans(
   pairwise ~ Cohort01 | Domain,
   adjust = "holm"
 )
+
+
+################################
+
+summary(lm(atonyms_total_acc ~ Cohort01 + Sex01, data = df))
+summary(lm(metal_total_acc ~ Cohort01 + Sex01, data = df))
+summary(lm(number_total_acc ~ Cohort01 + Sex01, data = df))
+
+summary(lm(atonyms_conf ~ Cohort01 + Sex01, data = df))
+summary(lm(metal_conf ~ Cohort01 + Sex01, data = df))
+summary(lm(number_conf ~ Cohort01 + Sex01, data = df))
