@@ -102,3 +102,91 @@ emmeans(
   pairwise ~ Domain,
   adjust = "tukey"
 )
+
+# NY HYPOTES------------------------------------------------------------
+library(dplyr)
+library(lmerTest)
+library(emmeans)
+
+# ------------------------------------------------------------
+# H5: Create long-format data and define Domain
+# ------------------------------------------------------------
+
+h5_long <- bind_rows(
+
+  df %>% transmute(
+    id,
+    Sex01,
+    Cohort01,
+    Domain = "Antonyms",
+    Absolute_bias = atonyms_abs_bias,
+    Slope = atonyms_slope
+  ),
+
+  df %>% transmute(
+    id,
+    Sex01,
+    Cohort01,
+    Domain = "Metal Folding",
+    Absolute_bias = metal_abs_bias,
+    Slope = metal_slope
+  ),
+
+  df %>% transmute(
+    id,
+    Sex01,
+    Cohort01,
+    Domain = "Number Series",
+    Absolute_bias = number_abs_bias,
+    Slope = number_slope
+  )
+)
+
+# Define Domain as a factor
+h5_long$Domain <- factor(
+  h5_long$Domain,
+  levels = c("Antonyms", "Metal Folding", "Number Series")
+)
+
+# Check
+table(h5_long$Domain, useNA = "ifany")
+
+
+# ------------------------------------------------------------
+# H5a: Absolute bias
+# ------------------------------------------------------------
+
+model_h5_absbias <- lmer(
+  Absolute_bias ~ Domain * Cohort01 + Sex01 + (1 | id),
+  data = h5_long,
+  na.action = na.omit
+)
+
+anova(model_h5_absbias)
+
+# Cohort differences within each domain
+emmeans(
+  model_h5_absbias,
+  pairwise ~ Cohort01 | Domain,
+  adjust = "holm"
+)
+
+
+# ------------------------------------------------------------
+# H5b: Discrimination (Slope)
+# ------------------------------------------------------------
+
+model_h5_slope <- lmer(
+  Slope ~ Domain * Cohort01 + Sex01 + (1 | id),
+  data = h5_long,
+  na.action = na.omit
+)
+
+anova(model_h5_slope)
+
+# Cohort differences within each domain
+emmeans(
+  model_h5_slope,
+  pairwise ~ Cohort01 | Domain,
+  adjust = "holm"
+)
