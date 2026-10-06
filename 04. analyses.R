@@ -1219,3 +1219,6 @@ emmeans(
   adjust = "holm"
 )
 
+capture.output(
+  source(file.choose(), echo = TRUE, encoding = "UTF-8"),
+  file = "output_04_cleaned.txt"
