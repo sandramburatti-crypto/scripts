@@ -1,3 +1,43 @@
+# AUTOMATISK OUTPUTFIL FÖR ANALYS 04
+# Kör hela denna fil med Source i RStudio. Alla synliga analysresultat
+# visas i Console och sparas samtidigt som UTF-8 i output_04_cleaned.txt.
+# Textfilen ligger i samma datamapp som clean_all.rds och ersätts vid omkörning.
+# Varningar, meddelanden och fel från R noteras också i loggen.
+# Diagram visas som tidigare i Plots; de sparas inte i denna textfil.
+# Loggningen stängs även om ett fel avbryter körningen. R-objekten skapas
+# i samma miljö som tidigare. Alla analysuttryck nedan är oförändrade.
+# Lägg inte source(file.choose()) eller capture.output() sist i filen.
+# Tekniskt stöd: https://stat.ethz.ch/R-manual/R-devel/library/base/html/sink.html
+
+.run_analysis_with_log <- function(code, log_file, envir = parent.frame()) {
+  expressions <- as.list(substitute(code))[-1L]
+  connection <- file(log_file, open = "wt", encoding = "UTF-8")
+  previous_depth <- sink.number()
+  on.exit({
+    while (sink.number() > previous_depth) sink()
+    close(connection)
+  }, add = TRUE)
+  sink(connection, split = TRUE)
+  # Synliga värden skrivs ut även vid Source utan echo = TRUE.
+  # Varningar/fel behåller R:s vanliga beteende och skrivs även i loggen.
+  withCallingHandlers({
+    cat("Analys 04 startad: ", format(Sys.time()), "\n", sep = "")
+    cat("Outputfil: ", normalizePath(log_file, winslash = "/"), "\n\n", sep = "")
+    for (expression in expressions) {
+      result <- withVisible(eval(expression, envir = envir))
+      if (result$visible) print(result$value)
+      flush(connection)
+    }
+    cat("\nAnalys 04 klar: ", format(Sys.time()), "\n", sep = "")
+  },
+  warning = function(w) writeLines(paste0("Varning: ", conditionMessage(w)), connection),
+  message = function(m) writeLines(paste0("Meddelande: ", conditionMessage(m)), connection),
+  error = function(e) writeLines(paste0("Fel: ", conditionMessage(e)), connection))
+  invisible(NULL)
+}
+
+# Hela analysen körs en gång, med loggning från början till slut.
+.run_analysis_with_log({
 # 04. analyses.R — försiktigt städad version
 # Beräkningar, modellinställningar och körordning är bevarade.
 # Kända problem är markerade med GRANSKA och beskrivna i README.txt.
@@ -15,7 +55,7 @@ if (length(missing_packages) > 0L) {
 }
 
 data_dir <- getOption("buratti.data_dir", "/safe/data/Buratti")
-df <- readRDS(file.path(data_dir, "super_clean_all.rds"))
+df <- readRDS(file.path(data_dir, "clean_all.rds"))
 
 # Kontrollera kopplingen innan de första analyserna körs.
 required_columns <- c(
@@ -1219,5 +1259,10 @@ emmeans(
   adjust = "holm"
 )
 
-capture.output(source(file.choose(), echo = TRUE, encoding = "UTF-8"), file = "output_04_analyses.txt")
+
+}, log_file = file.path(
+  getOption("buratti.data_dir", "/safe/data/Buratti"),
+  "output_04_cleaned.txt"
+))
+
                
