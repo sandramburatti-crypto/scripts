@@ -55,7 +55,7 @@ if (length(missing_packages) > 0L) {
 }
 
 data_dir <- getOption("buratti.data_dir", "/safe/data/Buratti")
-df <- readRDS(file.path(data_dir, "super_clean_all.rds"))
+df <- readRDS(file.path(data_dir, "clean_all.rds"))
 
 # Kontrollera kopplingen innan de första analyserna körs.
 required_columns <- c(
@@ -1264,5 +1264,3 @@ emmeans(
   getOption("buratti.data_dir", "/safe/data/Buratti"),
   "output_04_cleaned.txt"
 ))
-
-               
