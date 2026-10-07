@@ -5,7 +5,7 @@
 # Varningar, meddelanden och fel från R noteras också i loggen.
 # Diagram visas som tidigare i Plots; de sparas inte i denna textfil.
 # Loggningen stängs även om ett fel avbryter körningen. R-objekten skapas
-# i samma miljö som tidigare. Alla analysuttryck nedan är oförändrade.
+# i samma miljö som tidigare. Loggningen ändrar inte analysuttryckens beteende.
 # Lägg inte source(file.choose()) eller capture.output() sist i filen.
 # Tekniskt stöd: https://stat.ethz.ch/R-manual/R-devel/library/base/html/sink.html
 
@@ -894,6 +894,17 @@ abs_bias_corr<- corr.test(df[,c("atonyms_abs_bias", "metal_abs_bias", "number_ab
 abs_bias_corr$r
 
 abs_bias_corr$p
+
+# H1 omfattar även signed bias (över-/underkonfidens) mellan domänerna.
+# Samma parvisa bortfall och Holmjustering som för övriga korrelationer.
+# Biasmåtten och urvalet ändras inte; här kompletteras korrelationsutskriften.
+bias_corr <- psych::corr.test(
+  df[, c("atonyms_bias", "metal_bias", "number_bias")],
+  use = "pairwise", method = "pearson", adjust = "holm"
+)
+bias_corr$r
+bias_corr$p
+bias_corr$n
 
 total_acc_corr<- corr.test(df[,c("atonyms_total_acc", "metal_total_acc", "number_total_acc")])
 
