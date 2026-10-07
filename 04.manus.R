@@ -286,8 +286,25 @@
   if (!isTRUE(all.equal(as.numeric(data$Cohort01), expected_cohort, check.attributes = FALSE)) ||
       !isTRUE(all.equal(as.numeric(data$Sex01), expected_sex, check.attributes = FALSE)))
     stop("Cohort01 eller Sex01 stämmer inte med kodningen i 01. Kör den uppdaterade 01-filen.", call. = FALSE)
-  numeric_cols <- setdiff(required, c("id", "Cohort", "RSSEX"))
-  if (!all(vapply(data[numeric_cols], is.numeric, logical(1)))) stop("Analys- och uppgiftskolumnerna måste vara numeriska.", call. = FALSE)
+  numeric_cols <- unique(setdiff(required, c("id", "Cohort", "RSSEX")))
+  # Rätt/fel från 01 kan vara logiskt TRUE/FALSE. R räknar dessa som 1/0.
+  # Gör samma tolkning explicit i analyskopian; NA förblir NA.
+  # Text och faktorer konverteras inte automatiskt, eftersom kodningen kan skilja sig.
+  correct_cols <- unique(unlist(lapply(domains, function(x) x$all_correct), use.names = FALSE))
+  logical_correct_cols <- correct_cols[vapply(data[correct_cols], is.logical, logical(1))]
+  if (length(logical_correct_cols)) {
+    data[logical_correct_cols] <- lapply(data[logical_correct_cols], as.numeric)
+    message("Datatyp: ", length(logical_correct_cols),
+      " rätt/fel-kolumner med TRUE/FALSE läses som 1/0; NA behålls.")
+  }
+  non_numeric_cols <- numeric_cols[!vapply(data[numeric_cols], is.numeric, logical(1))]
+  if (length(non_numeric_cols)) {
+    column_types <- vapply(data[non_numeric_cols], function(x) paste(class(x), collapse = "/"), character(1))
+    stop("Följande analys- eller uppgiftskolumner är inte numeriska:\n",
+      paste(paste0(non_numeric_cols, " [", column_types, "]"), collapse = "\n"),
+      "\nKontrollera dessa kolumner i clean_all.rds. Text och faktorer behöver kontrollerad kodning.",
+      call. = FALSE)
+  }
   if (any(vapply(data[numeric_cols], function(x) any(is.infinite(x)), logical(1)))) stop("Oändliga värden finns i analysdata; kontrollera dem först.", call. = FALSE)
   # En lokal kopia används. Inget sparas tillbaka till clean_all.rds.
   data$Cohort01 <- as.numeric(data$Cohort01); data$Sex01 <- as.numeric(data$Sex01)
