@@ -436,8 +436,5 @@ df[derived_measure_vars] <- lapply(df[derived_measure_vars], function(x) {
 })
 
 ######### SAVE cleaned dataset
-saveRDS(df, file.path(data_dir, "super_clean_all.rds"))
+saveRDS(df, file.path(data_dir, "clean_all.rds"))
 
-                           capture.output(
-  source(file.choose(), echo = TRUE, encoding = "UTF-8"),
-  file = "output_01_cleaned.txt"
